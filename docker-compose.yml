@@ -1,0 +1,50 @@
+
+services:
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: supplyLedger-app
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    environment:
+       ENV: development
+    working_dir: /app
+    depends_on:
+      - db_supplyLedger
+  
+  db_supplyLedger:
+    image: postgres:13
+    container_name: supplyLedger-db
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - db_data:/var/lib/postgressql/db_data
+  migration:
+    image: migrate/migrate
+    env_file:
+      - .env
+    volumes:
+      - ./migrations:/migrations
+    command: [
+      "-path", "/migrations",
+      "-database", "${DATABASE_URL}",
+      "up" 
+    ]
+    depends_on:
+      - db_supplyLedger
+
+
+volumes:
+  db_data:
+    
+    
+    
