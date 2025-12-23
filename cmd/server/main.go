@@ -34,7 +34,7 @@ func main() {
 
 	//init routing
 	api := app.Group("/api/v1")
-	routes.GlobalRoutes(api, authModule)
+	routes.GlobalRoutes(api, authModule, userModule)
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.Status(200).JSON(fiber.Map{
