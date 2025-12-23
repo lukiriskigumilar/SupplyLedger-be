@@ -7,5 +7,5 @@ import (
 func AuthRoute(r fiber.Router, m *AuthModule) {
 	authRoutes := r.Group("/auth")
 	authRoutes.Post("/register", m.AuthHandler.RegisterHandler)
-
+	authRoutes.Post("/login", m.AuthHandler.LoginHandler)
 }
