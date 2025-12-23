@@ -1,9 +1,11 @@
 package auth
 
 import (
+	"os"
 	"strings"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/lukiriskigumilar/SupplyLedger-be/internal/common"
 	"github.com/lukiriskigumilar/SupplyLedger-be/internal/user"
@@ -12,6 +14,7 @@ import (
 
 type AuthService interface {
 	RegisterService(input RegisterRequestDTO) (*RegisterResponseDTO, error)
+	LoginService(input LoginRequestDTO) (*LoginResult, error)
 }
 
 type authService struct {
@@ -22,6 +25,7 @@ func NewAuthService(repo user.UserRepository) AuthService {
 	return &authService{repo}
 }
 
+// REGISTER SERVICE
 func (s *authService) RegisterService(input RegisterRequestDTO) (*RegisterResponseDTO, error) {
 
 	//checkUsername
@@ -65,4 +69,56 @@ func (s *authService) RegisterService(input RegisterRequestDTO) (*RegisterRespon
 	}
 
 	return Response, nil
+}
+
+// LOGIN SERVICE
+func (s *authService) LoginService(input LoginRequestDTO) (
+	*LoginResult, error) {
+	username := strings.ToLower(strings.ReplaceAll(input.Username, " ", ""))
+
+	//find user
+	user, err := s.repo.FindByUsername(username)
+	if err != nil {
+		return nil, &common.AppError{
+			StatusCode: 400,
+			Message:    "Login failed",
+			Reason:     "invalid email or password",
+		}
+	}
+
+	//compare password
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password))
+	if err != nil {
+		return nil, &common.AppError{
+			StatusCode: 400,
+			Message:    "Login failed",
+			Reason:     "invalid email or password",
+		}
+	}
+
+	createToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id":  user.ID,
+		"role":     user.Role,
+		"username": user.Username,
+		"exp":      time.Now().Add(time.Hour * 24).Unix(),
+	})
+
+	key := os.Getenv("JWT_SECRET")
+
+	token, err := createToken.SignedString([]byte(key))
+	if err != nil {
+		return nil, &common.AppError{}
+	}
+
+	response := &LoginResult{
+		userID:    user.ID.String(),
+		Username:  user.Username,
+		Role:      user.Role,
+		Token:     token,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+	}
+
+	return response, nil
+
 }
