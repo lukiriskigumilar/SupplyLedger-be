@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
 	"github.com/lukiriskigumilar/SupplyLedger-be/internal/auth"
 	"github.com/lukiriskigumilar/SupplyLedger-be/internal/config"
 	httpx "github.com/lukiriskigumilar/SupplyLedger-be/internal/http"
@@ -10,6 +11,12 @@ import (
 )
 
 func main() {
+
+	//load env
+	err := godotenv.Load()
+	if err != nil {
+		panic("failed to lead .env file")
+	}
 
 	app := fiber.New(
 		fiber.Config{
@@ -25,10 +32,9 @@ func main() {
 	userModule := user.InitUserModule(db)
 	authModule := auth.InitAuthModule(userModule)
 
+	//init routing
 	api := app.Group("/api/v1")
 	routes.GlobalRoutes(api, authModule)
-
-	//ini routing
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.Status(200).JSON(fiber.Map{
