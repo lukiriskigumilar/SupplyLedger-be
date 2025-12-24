@@ -1,0 +1,79 @@
+package item
+
+import (
+	"errors"
+
+	"github.com/lukiriskigumilar/SupplyLedger-be/internal/common"
+	"gorm.io/gorm"
+)
+
+type ItemRepository interface {
+	CreateItem(item *Item) error
+	SearchByName(name string) (*Item, error)
+	GetAllItem(query common.PaginationQuery) ([]Item, int, error)
+	getItemById(id string) (*Item, error)
+	SearchItem(name string) ([]Item, error)
+	DeletedByID(id string) error
+}
+
+type itemRepository struct {
+	db *gorm.DB
+}
+
+func NewItemRepository(db *gorm.DB) ItemRepository {
+	return &itemRepository{db}
+}
+
+func (r *itemRepository) CreateItem(item *Item) error {
+	return r.db.Create(item).Error
+}
+
+func (r *itemRepository) SearchByName(name string) (*Item, error) {
+	var item Item
+	err := r.db.Where("name = ?", name).First(&item).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &item, nil
+}
+
+func (r *itemRepository) getItemById(id string) (*Item, error) {
+	var item Item
+	err := r.db.Where("id=?", id).First(&item).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &item, nil
+}
+
+func (r *itemRepository) GetAllItem(query common.PaginationQuery) ([]Item, int, error) {
+	var items []Item
+	var total int64
+
+	if err := r.db.Model(&Item{}).Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	if err := r.db.Limit(query.Limit).Offset(query.Offset).Find(&items).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return items, int(total), nil
+
+}
+
+func (r *itemRepository) SearchItem(key string) ([]Item, error) {
+	var items []Item
+	err := r.db.Where("name LIKE ?", "%"+key+"%").Order("name ASC").Limit(10).Find(&items).Error
+	return items, err
+}
+
+func (r *itemRepository) DeletedByID(id string) error {
+	return r.db.Delete(&Item{}, "id =?", id).Error
+}

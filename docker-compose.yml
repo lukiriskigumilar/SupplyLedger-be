@@ -34,11 +34,12 @@ services:
       - .env
     volumes:
       - ./migrations:/migrations
-    command: [
-      "-path", "/migrations",
-      "-database", "${DATABASE_URL}",
-      "up" 
-    ]
+    entrypoint: 
+      - migrate
+      - "-path"
+      - "/migrations"
+      - "-database"
+      - "${DATABASE_URL}"
     depends_on:
       - db_supplyLedger
 
