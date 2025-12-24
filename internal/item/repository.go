@@ -12,6 +12,7 @@ type ItemRepository interface {
 	SearchByName(name string) (*Item, error)
 	GetAllItem(query common.PaginationQuery) ([]Item, int, error)
 	getItemById(id string) (*Item, error)
+	SearchItem(name string) ([]Item, error)
 }
 
 type itemRepository struct {
@@ -64,4 +65,10 @@ func (r *itemRepository) GetAllItem(query common.PaginationQuery) ([]Item, int, 
 
 	return items, int(total), nil
 
+}
+
+func (r *itemRepository) SearchItem(key string) ([]Item, error) {
+	var items []Item
+	err := r.db.Where("name LIKE ?", "%"+key+"%").Order("name ASC").Limit(10).Find(&items).Error
+	return items, err
 }
