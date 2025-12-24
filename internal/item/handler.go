@@ -80,7 +80,7 @@ func (h *ItemHandler) GetItemByIdHandler(c *fiber.Ctx) error {
 	item_id := c.Params("id")
 
 	//call service
-	result, err := h.itemService.getItemById(item_id)
+	result, err := h.itemService.GetItemById(item_id)
 	if err != nil {
 		return err
 	}

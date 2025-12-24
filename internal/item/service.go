@@ -12,7 +12,7 @@ import (
 type ItemService interface {
 	CreateItem(input CreateItemRequestDTO) (*ItemResponseDTO, error)
 	GetAll(page int, limit int) ([]ItemResponseDTO, common.Pagination, error)
-	getItemById(id string) (*ItemResponseDTO, error)
+	GetItemById(id string) (*ItemResponseDTO, error)
 }
 
 type itemService struct {
@@ -87,7 +87,7 @@ func (s *itemService) CreateItem(input CreateItemRequestDTO) (*ItemResponseDTO, 
 
 }
 
-// CREATE GET ALL ITEMS SERVICE
+// GET ALL ITEMS SERVICE
 func (s *itemService) GetAll(page int, limit int) ([]ItemResponseDTO, common.Pagination, error) {
 	const errorMessage = "get data item failed"
 	//guard and give default value
@@ -151,7 +151,8 @@ func (s *itemService) GetAll(page int, limit int) ([]ItemResponseDTO, common.Pag
 
 }
 
-func (s *itemService) getItemById(id string) (*ItemResponseDTO, error) {
+// GET ITEMS BY ID
+func (s *itemService) GetItemById(id string) (*ItemResponseDTO, error) {
 	const messageError = "failed to get data"
 	//call repository
 	item, err := s.itemRepo.getItemById(id)
@@ -180,3 +181,6 @@ func (s *itemService) getItemById(id string) (*ItemResponseDTO, error) {
 	}
 	return res, nil
 }
+
+// //SEARCH ITEMS BY NAME
+// func(s *itemService) Search
