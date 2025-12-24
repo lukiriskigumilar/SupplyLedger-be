@@ -11,4 +11,5 @@ func ItemsRoute(r fiber.Router, m *ItemModule) {
 
 	items.Post("", m.ItemHandler.CreateItemHandler)
 	items.Get("", m.ItemHandler.GetAllHandler)
+	items.Post("/:id", m.ItemHandler.GetItemByIdHandler)
 }
