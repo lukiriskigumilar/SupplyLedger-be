@@ -10,4 +10,5 @@ func ItemsRoute(r fiber.Router, m *ItemModule) {
 	items.Use(middleware.AuthMiddleware("user", "admin"))
 
 	items.Post("", m.ItemHandler.CreateItemHandler)
+	items.Get("", m.ItemHandler.GetAllHandler)
 }
