@@ -51,3 +51,24 @@ func (h *ItemHandler) CreateItemHandler(c *fiber.Ctx) error {
 		"create Items Successfully", 201, result, nil,
 	)
 }
+
+// Get all item handler
+func (h *ItemHandler) GetAllHandler(c *fiber.Ctx) error {
+
+	//Get query param
+	page := c.QueryInt("page", 0)
+	limit := c.QueryInt("limit", 0)
+
+	items, pagination, err := h.itemService.GetAll(page, limit)
+	if err != nil {
+		return err
+	}
+	return utils.NewApiResponseSuccess(
+		c,
+		"get items successfully",
+		200,
+		items,
+		pagination,
+	)
+
+}
