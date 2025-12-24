@@ -90,8 +90,7 @@ func (h *ItemHandler) GetItemByIdHandler(c *fiber.Ctx) error {
 
 }
 
-//Search item by name
-
+// Search item by name
 func (h *ItemHandler) SearchItemByName(c *fiber.Ctx) error {
 
 	itemName := c.Query("name", "default")
@@ -104,4 +103,17 @@ func (h *ItemHandler) SearchItemByName(c *fiber.Ctx) error {
 
 	return utils.NewApiResponseSuccess(c, "get data item successfully", 200, result, nil)
 
+}
+
+// Delete item handler
+func (h *ItemHandler) DeleteItemHandler(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	err := h.itemService.DeletedByID(id)
+	if err != nil {
+		return err
+	}
+	return utils.NewApiResponseSuccess(
+		c, "deleted item successfully", 200, nil, nil,
+	)
 }
