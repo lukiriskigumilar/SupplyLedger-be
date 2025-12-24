@@ -1,12 +1,14 @@
 package item
 
 import (
+	"fmt"
 	"math"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/lukiriskigumilar/SupplyLedger-be/internal/common"
+	"github.com/lukiriskigumilar/SupplyLedger-be/internal/utils"
 )
 
 type ItemService interface {
@@ -14,6 +16,7 @@ type ItemService interface {
 	GetAll(page int, limit int) ([]ItemResponseDTO, common.Pagination, error)
 	GetItemById(id string) (*ItemResponseDTO, error)
 	SearchItemByName(name string) ([]ItemResponseDTO, error)
+	DeletedByID(id string) error
 }
 
 type itemService struct {
@@ -212,4 +215,42 @@ func (s *itemService) SearchItemByName(name string) ([]ItemResponseDTO, error) {
 		})
 	}
 	return res, nil
+}
+
+//DELETE ITEM BY ID
+
+func (s *itemService) DeletedByID(id string) error {
+
+	//validate id
+	item, err := s.itemRepo.getItemById(id)
+	if err != nil {
+		return &common.AppError{
+			StatusCode: 500,
+			Message:    "delete item failed",
+			Reason:     "internal server error",
+		}
+	}
+	if item == nil {
+		return &common.AppError{
+			StatusCode: 404,
+			Message:    "delete item failed",
+			Reason:     fmt.Sprintf("item with id %s not found", id),
+		}
+	}
+	//call repository delete
+	if err := s.itemRepo.DeletedByID(id); err != nil {
+		if utils.IsFKConstraintError(err) {
+			return &common.AppError{
+				StatusCode: 409,
+				Message:    "cannot delete item",
+				Reason:     "item is used in purchasing records",
+			}
+		}
+		return &common.AppError{
+			StatusCode: 500,
+			Message:    "delete item failed",
+			Reason:     err.Error(),
+		}
+	}
+	return nil
 }
