@@ -1,6 +1,7 @@
 package item
 
 import (
+	"math"
 	"strings"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 
 type ItemService interface {
 	CreateItem(input CreateItemRequestDTO) (*ItemResponseDTO, error)
+	GetAll(page int, limit int) ([]ItemResponseDTO, common.Pagination, error)
 }
 
 type itemService struct {
@@ -24,6 +26,7 @@ func normalizeName(name string) string {
 	return strings.ToLower(strings.TrimSpace(name))
 }
 
+// CREATE ITEM SERVICE
 func (s *itemService) CreateItem(input CreateItemRequestDTO) (*ItemResponseDTO, error) {
 	itemName := normalizeName(input.Name)
 	const messageError = "failed to create item"
@@ -80,5 +83,69 @@ func (s *itemService) CreateItem(input CreateItemRequestDTO) (*ItemResponseDTO, 
 	}
 
 	return response, nil
+
+}
+
+// CREATE GET ALL ITEMS SERVICE
+func (s *itemService) GetAll(page int, limit int) ([]ItemResponseDTO, common.Pagination, error) {
+	const errorMessage = "get data item failed"
+	//guard and give default value
+	if page <= 0 {
+		page = 1
+	}
+	if limit <= 0 {
+		limit = 10
+	}
+
+	//counting offset
+	offset := (page - 1) * limit
+
+	//call repository
+	items, total, err := s.itemRepo.GetAllItem(
+		common.PaginationQuery{
+			Limit:  limit,
+			Offset: offset,
+		},
+	)
+	//check if error
+	if err != nil {
+		return nil, common.Pagination{}, &common.AppError{
+			StatusCode: 500,
+			Message:    errorMessage,
+			Reason:     "internal server error",
+		}
+	}
+
+	//mapping domain -> response dto
+	itemResponses := make([]ItemResponseDTO, 0, len(items))
+	for _, item := range items {
+		itemResponses = append(itemResponses, ItemResponseDTO{
+			ID:        item.ID.String(),
+			Name:      item.Name,
+			Stock:     item.Stock,
+			Price:     item.Price,
+			CreatedAt: item.CreatedAt,
+			UpdatedAt: item.UpdatedAt,
+		})
+	}
+
+	//count pagination metadata
+	totalPages := 0
+	if limit > 0 {
+		totalPages = int(math.Ceil(float64(total) / float64(limit)))
+	}
+	hashNext := (page * limit) < int(total)
+
+	pagination := common.Pagination{
+		TotalData:   total,
+		Limit:       limit,
+		CurrentPage: page,
+		TotalPages:  totalPages,
+		HasPrev:     page > 1,
+		HasNext:     hashNext,
+	}
+
+	//return final result
+	return itemResponses, pagination, nil
 
 }
