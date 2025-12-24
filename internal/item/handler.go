@@ -89,3 +89,19 @@ func (h *ItemHandler) GetItemByIdHandler(c *fiber.Ctx) error {
 	return utils.NewApiResponseSuccess(c, "get item successfully", 200, result, nil)
 
 }
+
+//Search item by name
+
+func (h *ItemHandler) SearchItemByName(c *fiber.Ctx) error {
+
+	itemName := c.Query("name", "default")
+
+	//call service
+	result, err := h.itemService.SearchItemByName(itemName)
+	if err != nil {
+		return err
+	}
+
+	return utils.NewApiResponseSuccess(c, "get data item successfully", 200, result, nil)
+
+}
