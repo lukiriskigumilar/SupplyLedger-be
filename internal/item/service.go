@@ -12,6 +12,7 @@ import (
 type ItemService interface {
 	CreateItem(input CreateItemRequestDTO) (*ItemResponseDTO, error)
 	GetAll(page int, limit int) ([]ItemResponseDTO, common.Pagination, error)
+	getItemById(id string) (*ItemResponseDTO, error)
 }
 
 type itemService struct {
@@ -148,4 +149,34 @@ func (s *itemService) GetAll(page int, limit int) ([]ItemResponseDTO, common.Pag
 	//return final result
 	return itemResponses, pagination, nil
 
+}
+
+func (s *itemService) getItemById(id string) (*ItemResponseDTO, error) {
+	const messageError = "failed to get data"
+	//call repository
+	item, err := s.itemRepo.getItemById(id)
+	if err != nil {
+		return nil, &common.AppError{
+			StatusCode: 500,
+			Message:    messageError,
+			Reason:     err.Error(),
+		}
+	}
+	if item == nil {
+		return nil, &common.AppError{
+			StatusCode: 404,
+			Message:    messageError,
+			Reason:     "item not found",
+		}
+	}
+
+	res := &ItemResponseDTO{
+		ID:        item.ID.String(),
+		Name:      item.Name,
+		Stock:     item.Stock,
+		Price:     item.Price,
+		CreatedAt: item.CreatedAt,
+		UpdatedAt: item.CreatedAt,
+	}
+	return res, nil
 }
