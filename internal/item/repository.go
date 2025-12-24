@@ -3,12 +3,14 @@ package item
 import (
 	"errors"
 
+	"github.com/lukiriskigumilar/SupplyLedger-be/internal/common"
 	"gorm.io/gorm"
 )
 
 type ItemRepository interface {
 	CreateItem(item *Item) error
 	SearchByName(name string) (*Item, error)
+	GetAllItem(query common.PaginationQuery) ([]Item, int, error)
 }
 
 type itemRepository struct {
@@ -33,4 +35,20 @@ func (r *itemRepository) SearchByName(name string) (*Item, error) {
 		return nil, err
 	}
 	return &item, nil
+}
+
+func (r *itemRepository) GetAllItem(query common.PaginationQuery) ([]Item, int, error) {
+	var items []Item
+	var total int64
+
+	if err := r.db.Model(&Item{}).Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	if err := r.db.Limit(query.Limit).Offset(query.Offset).Find(&items).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return items, int(total), nil
+
 }
