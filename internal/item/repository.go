@@ -13,6 +13,7 @@ type ItemRepository interface {
 	GetAllItem(query common.PaginationQuery) ([]Item, int, error)
 	getItemById(id string) (*Item, error)
 	SearchItem(name string) ([]Item, error)
+	DeletedByID(id string) error
 }
 
 type itemRepository struct {
@@ -71,4 +72,8 @@ func (r *itemRepository) SearchItem(key string) ([]Item, error) {
 	var items []Item
 	err := r.db.Where("name LIKE ?", "%"+key+"%").Order("name ASC").Limit(10).Find(&items).Error
 	return items, err
+}
+
+func (r *itemRepository) DeletedByID(id string) error {
+	return r.db.Delete(&Item{}, "id =?", id).Error
 }
