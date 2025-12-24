@@ -11,6 +11,7 @@ type ItemRepository interface {
 	CreateItem(item *Item) error
 	SearchByName(name string) (*Item, error)
 	GetAllItem(query common.PaginationQuery) ([]Item, int, error)
+	getItemById(id string) (*Item, error)
 }
 
 type itemRepository struct {
@@ -28,6 +29,18 @@ func (r *itemRepository) CreateItem(item *Item) error {
 func (r *itemRepository) SearchByName(name string) (*Item, error) {
 	var item Item
 	err := r.db.Where("name = ?", name).First(&item).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &item, nil
+}
+
+func (r *itemRepository) getItemById(id string) (*Item, error) {
+	var item Item
+	err := r.db.Where("id=?", id).First(&item).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
