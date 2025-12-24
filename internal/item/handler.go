@@ -72,3 +72,20 @@ func (h *ItemHandler) GetAllHandler(c *fiber.Ctx) error {
 	)
 
 }
+
+// Get item by id handler
+func (h *ItemHandler) GetItemByIdHandler(c *fiber.Ctx) error {
+
+	//get id from params
+	item_id := c.Params("id")
+
+	//call service
+	result, err := h.itemService.getItemById(item_id)
+	if err != nil {
+		return err
+	}
+
+	//send result
+	return utils.NewApiResponseSuccess(c, "get item successfully", 200, result, nil)
+
+}
