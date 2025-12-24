@@ -13,6 +13,7 @@ type ItemService interface {
 	CreateItem(input CreateItemRequestDTO) (*ItemResponseDTO, error)
 	GetAll(page int, limit int) ([]ItemResponseDTO, common.Pagination, error)
 	GetItemById(id string) (*ItemResponseDTO, error)
+	SearchItemByName(name string) ([]ItemResponseDTO, error)
 }
 
 type itemService struct {
@@ -182,5 +183,33 @@ func (s *itemService) GetItemById(id string) (*ItemResponseDTO, error) {
 	return res, nil
 }
 
-// //SEARCH ITEMS BY NAME
-// func(s *itemService) Search
+// SEARCH ITEMS BY NAME
+func (s *itemService) SearchItemByName(name string) ([]ItemResponseDTO, error) {
+	itemName := normalizeName(name)
+
+	//cal repository
+	items, err := s.itemRepo.SearchItem(itemName)
+	if err != nil {
+		return nil, &common.AppError{
+			StatusCode: 500,
+			Message:    "get data item failed",
+			Reason:     "internal server error",
+		}
+	}
+	if len(items) == 0 {
+		return []ItemResponseDTO{}, nil
+	}
+
+	var res []ItemResponseDTO
+	for _, item := range items {
+		res = append(res, ItemResponseDTO{
+			ID:        item.ID.String(),
+			Name:      item.Name,
+			Stock:     item.Stock,
+			Price:     item.Price,
+			CreatedAt: item.CreatedAt,
+			UpdatedAt: item.UpdatedAt,
+		})
+	}
+	return res, nil
+}
