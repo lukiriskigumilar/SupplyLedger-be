@@ -13,4 +13,5 @@ func ItemsRoute(r fiber.Router, m *ItemModule) {
 	items.Get("", m.ItemHandler.GetAllHandler)
 	items.Get("/search", m.ItemHandler.SearchItemByName)
 	items.Get("/:id", m.ItemHandler.GetItemByIdHandler)
+	items.Delete("/:id", m.ItemHandler.DeleteItemHandler)
 }
